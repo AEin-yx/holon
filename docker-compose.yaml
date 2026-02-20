@@ -1,0 +1,56 @@
+version: "3.9"
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "142857:142857" # External:Internal
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - holon
+    depends_on:
+      - gatekeeper
+    restart: unless-stopped
+
+  Gatekeeper:
+    build: ./gatekeeper
+    expose:
+      - "3000"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: production
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - holon
+    restart: unless-stopped
+  postgres:
+    image: postgres:18.1
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - holon
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - holon
+    restart: unless-stopped
+networks:
+  holon:
+    driver: bridge
+volumes:
+  postgres_data:
+  redis_data:

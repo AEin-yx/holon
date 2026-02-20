@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model users  {
+  id       String @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  username String @db.VarChar(200)
+  email    String @unique @db.VarChar(200)
+  password String @db.VarChar(200)
+  oauthAccounts oauthAccounts[]
+  @@map("users")
+}
+
+enum Provider {
+  google
+  github
+}
+
+model oauthAccounts {
+  id                String    @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  provider          Provider
+  providerAccountId String    @map("provider_account_id") @db.VarChar(255) @unique
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp()
+  
+  user              users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("oauth_accounts")
+}
