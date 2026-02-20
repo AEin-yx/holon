@@ -1,19 +1,19 @@
-FROM node:24.13.0-trixie-slim 
+FROM node:24.13.0-trixie-slim
 
 WORKDIR /gatekeeper
-RUN adduser -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 && \
-    chown -R nodejs:nodejs /gatekeeper
 
-USER nodejs
 
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm ci 
+RUN npm ci --only=production
 RUN npx prisma generate
 
 COPY . .
+RUN groupadd -r nodeapp && useradd -r -g nodeapp nodeapp && chown -R nodeapp:nodeapp /gatekeeper
+
+USER nodeapp
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=3s \
