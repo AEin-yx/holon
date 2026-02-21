@@ -8,6 +8,7 @@ COPY prisma ./prisma/
 
 RUN npm ci --only=production
 RUN npx prisma generate
+RUN npx prisma migrate deploy
 
 COPY . .
 RUN groupadd -r nodeapp && useradd -r -g nodeapp nodeapp && chown -R nodeapp:nodeapp /gatekeeper
